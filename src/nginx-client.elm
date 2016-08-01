@@ -8,12 +8,12 @@ import Json.Decode.Extra exposing ((|:))
 import Json.Decode exposing (Decoder, decodeValue, succeed, string, int, oneOf, null, list, bool, maybe, (:=))
 import Task
 import Debug exposing (..)
-
+import String
 
 
 main =
   Html.program
-    { init = init "http://localhost/"
+    { init = init "http://localhost"
     , view = view
     , update = update
     , subscriptions = subscriptions
@@ -71,14 +71,13 @@ update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     Navigate newpath ->
-      (Model model.baseurl newpath [], getListing model.baseurl newpath)
+      (Model model.baseurl (joinPath [model.path, newpath]) [], getListing model.baseurl newpath)
 
     FetchSucceed entities ->
       (Model model.baseurl model.path entities, Cmd.none)
 
     FetchFail _ ->
       (model, Cmd.none)
-
 
 
 -- VIEW
@@ -88,18 +87,24 @@ view : Model -> Html Msg
 view model =
   div []
     [ h2 [] [text (model.baseurl ++ model.path)]
-    , toHtmlList model.entities
+    , toHtmlList model
     ]
 
-toHtmlList : List Entity -> Html Msg
-toHtmlList entities =
-  ul [] (List.map toLi entities)
+toHtmlList : Model -> Html Msg
+toHtmlList model =
+  ul [] (List.map (toLi model) model.entities)
 
-toLi : Entity -> Html Msg
-toLi ent =
-  li []
-    [ a [ href ent.name ] [ text ent.name ] ]
-
+toLi : Model -> Entity -> Html Msg
+toLi m ent =
+  case ent.type' of
+    "directory" ->
+      li []
+        [ a [ href "#", onClick (Navigate ent.name) ] [ text ent.name ] ]
+    "file" ->
+      li []
+        [ a [ href (joinPath [m.baseurl, m.path, ent.name]) ] [ text ent.name ] ]
+    _ ->
+      li [] [ text "derp" ]
 
 
 -- SUBSCRIPTIONS
@@ -109,6 +114,11 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.none
 
+-- HELPER
+
+joinPath : List String -> String
+joinPath lst =
+  String.join "/" lst
 
 
 -- HTTP
@@ -118,6 +128,6 @@ getListing : String -> String -> Cmd Msg
 getListing baseurl path =
   let
     url =
-      baseurl ++ path
+      joinPath [baseurl, path]
   in
     Task.perform FetchFail FetchSucceed (Http.get decodeEntityList url)
