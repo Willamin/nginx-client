@@ -97,8 +97,10 @@ view model =
 
 toHtmlList : Model -> Html Msg
 toHtmlList model =
-  div [ class "list-group" ] (List.map (toLi model) model.entities)
-
+ let entities =
+    [{nullEntity | type' = "directory", name = ".."}] ++ model.entities
+  in
+    div [ class "list-group" ] (List.map (toLi model) entities )
 toLi : Model -> Entity -> Html Msg
 toLi m ent =
   case ent.type' of
