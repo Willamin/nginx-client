@@ -11,13 +11,10 @@ Elm application.
 
 ```bash
 # Install dependencies
+$ elm package install
 $ npm install
-$
 
-# Hack on the client
-$ elm-reactor
-
-# ...or build for production!
+# Compile client for production
 $ make
 ```
 
