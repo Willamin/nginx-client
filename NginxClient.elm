@@ -20,7 +20,7 @@ import Task
 
 main =
   Html.program
-    { init = init "http://localhost"
+    { init = init "http://localhost/"
     , view = view
     , update = update
     , subscriptions = subscriptions
@@ -102,7 +102,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
   div []
-    [ h2 [] [text (Erl.toString model.url)]
+    [ h2 [ class "path" ] [ text ("Index of " ++ Erl.extractPath (Erl.toString model.url)) ]
     , toHtmlList model
     ]
 
@@ -127,7 +127,7 @@ toLi m ent =
       "file" ->
         { name = ent.name
         , icon = "file"
-        , href = Erl.toString m.url
+        , href = Erl.toString (Erl.appendPathSegments [ent.name] m.url)
         , extra = []
         , size' = toString (Maybe.withDefault 0 ent.size')
         }
