@@ -104,19 +104,28 @@ toLi m ent =
   case ent.type' of
     "directory" ->
       a [ class "list-group-item", href "#", onClick (Navigate ent.name) ]
-      [ span [ class "octicon octicon-file-directory" ] []
-      , text (" " ++ ent.name ++ "/")
-      , span [ class "pull-right" ] [ text ent.mtime ]
+      [ p []
+        [ span [ class "octicon octicon-file-directory" ] []
+        , text (" " ++ ent.name ++ "/")
+        , span [ class "pull-right" ] [ text (toString (Maybe.withDefault 0 ent.size')) ]
+        ]
+      , div [ ]
+        [ span [] [ small [ class "text-muted" ] [ text ent.mtime ] ]
+        ]
       ]
     "file" ->
-      a [ class "list-group-item", href (joinPath [m.baseurl, m.path, ent.name]) ]
-      [ span [ class "octicon octicon-file" ] []
-      , text ent.name
-      , span [ class "pull-right" ] [ text (toString (Maybe.withDefault 0 ent.size')) ]
+      a [ class "list-group-item", href "#", onClick (Navigate ent.name) ]
+      [ p []
+        [ span [ class "octicon octicon-file" ] []
+        , text ent.name
+        , span [ class "pull-right" ] [ text (toString (Maybe.withDefault 0 ent.size')) ]
+        ]
+      , div [ ]
+        [ span [] [ small [ class "text-muted" ] [ text ent.mtime ] ]
+        ]
       ]
     _ ->
       a [] [ text "derp" ]
-
 
 -- SUBSCRIPTIONS
 
