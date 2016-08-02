@@ -101,22 +101,38 @@ toHtmlList model =
 
 toLi : Model -> Entity -> Html Msg
 toLi m ent =
-  case ent.type' of
-    "directory" ->
-      a [ class "list-group-item", href "#", onClick (Navigate ent.name) ]
-      [ span [ class "octicon octicon-file-directory" ] []
-      , text (" " ++ ent.name ++ "/")
-      , span [ class "pull-right" ] [ text ent.mtime ]
+  let item =
+    case ent.type' of
+      "directory" ->
+        { name = " " ++ ent.name ++ "/"
+        , icon = "file-directory"
+        , href = "#"
+        , extra = [ onClick (Navigate ent.name) ]
+        , size' = ""
+        }
+      "file" ->
+        { name = ent.name
+        , icon = "file"
+        , href = (joinPath [m.baseurl, m.path, ent.name])
+        , extra = []
+        , size' = toString (Maybe.withDefault 0 ent.size')
+        }
+      _ ->
+        { name = ""
+        , icon = "alert"
+        , href = "#"
+        , extra = []
+        , size' = ""
+        }
+  in
+    a ( [ class "list-group-item", href item.href ] ++ item.extra )
+      [ span [ class ( "octicon octicon-" ++ item.icon ) ] []
+      , text item.name
+      , p []
+        [ span [] [ small [ class "text-muted" ] [ text ent.mtime ] ]
+        , span [ class "pull-right" ] [ text item.size' ]
+        ]
       ]
-    "file" ->
-      a [ class "list-group-item", href (joinPath [m.baseurl, m.path, ent.name]) ]
-      [ span [ class "octicon octicon-file" ] []
-      , text ent.name
-      , span [ class "pull-right" ] [ text (toString (Maybe.withDefault 0 ent.size')) ]
-      ]
-    _ ->
-      a [] [ text "derp" ]
-
 
 -- SUBSCRIPTIONS
 
