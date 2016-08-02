@@ -14,6 +14,7 @@ import Json.Decode exposing (Decoder, decodeValue, succeed, string, int, oneOf, 
 import Task
 import Debug exposing (..)
 import String
+import Regex
 
 
 main =
@@ -130,6 +131,7 @@ subscriptions model =
 joinPath : List String -> String
 joinPath lst =
   String.join "/" lst
+  |> Regex.replace Regex.All (Regex.regex "/+") (\_ -> "/")
 
 
 -- HTTP
