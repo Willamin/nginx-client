@@ -1,3 +1,8 @@
+port module NginxClient exposing (..)
+
+-- IMPORTS
+
+import Date
 import Html exposing (..)
 import Html.App as Html
 import Html.Attributes exposing (..)
@@ -92,19 +97,25 @@ view model =
 
 toHtmlList : Model -> Html Msg
 toHtmlList model =
-  ul [] (List.map (toLi model) model.entities)
+  div [ class "list-group" ] (List.map (toLi model) model.entities)
 
 toLi : Model -> Entity -> Html Msg
 toLi m ent =
   case ent.type' of
     "directory" ->
-      li []
-        [ a [ href "#", onClick (Navigate ent.name) ] [ text ent.name ] ]
+      a [ class "list-group-item", href "#", onClick (Navigate ent.name) ]
+      [ span [ class "octicon octicon-file-directory" ] []
+      , text (" " ++ ent.name ++ "/")
+      , span [ class "pull-right" ] [ text ent.mtime ]
+      ]
     "file" ->
-      li []
-        [ a [ href (joinPath [m.baseurl, m.path, ent.name]) ] [ text ent.name ] ]
+      a [ class "list-group-item", href (joinPath [m.baseurl, m.path, ent.name]) ]
+      [ span [ class "octicon octicon-file" ] []
+      , text ent.name
+      , span [ class "pull-right" ] [ text (toString (Maybe.withDefault 0 ent.size')) ]
+      ]
     _ ->
-      li [] [ text "derp" ]
+      a [] [ text "derp" ]
 
 
 -- SUBSCRIPTIONS
