@@ -73,7 +73,8 @@ decodeEntity =
 
 
 type Msg
-  = Navigate String
+  = ParentDirectory
+  | Navigate String
   | FetchSucceed (List Entity)
   | FetchFail Http.Error
 
@@ -81,6 +82,10 @@ type Msg
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
+    ParentDirectory ->
+      -- TODO: pop last component from path
+      (model, Cmd.none)
+
     Navigate newpath ->
       let
         newmodel : Model
@@ -102,14 +107,14 @@ update msg model =
 view : Model -> Html Msg
 view model =
   div []
-    [ h2 [ class "path" ] [ text ("Index of " ++ Erl.extractPath (Erl.toString model.url)) ]
+    [ h2 [ class "path" ] [ text ("Index of " ++ (decodeUrlPath model.url)) ]
     , toHtmlList model
     ]
 
 toHtmlList : Model -> Html Msg
 toHtmlList model =
- let entities =
-    [{nullEntity | type' = "directory", name = ".."}] ++ model.entities
+  let entities =
+    [{nullEntity | type' = "parent_directory", name = ".."}] ++ model.entities
   in
     div [ class "list-group" ] (List.map (toLi model) entities )
 
@@ -117,6 +122,13 @@ toLi : Model -> Entity -> Html Msg
 toLi m ent =
   let item =
     case ent.type' of
+      "parent_directory" ->
+        { name = " ../"
+        , icon = "file-directory"
+        , href = "#"
+        , extra = [ onClick (ParentDirectory) ]
+        , size' = ""
+        }
       "directory" ->
         { name = " " ++ ent.name ++ "/"
         , icon = "file-directory"
@@ -125,9 +137,9 @@ toLi m ent =
         , size' = ""
         }
       "file" ->
-        { name = ent.name
+        { name = " " ++ ent.name
         , icon = "file"
-        , href = Erl.toString (Erl.appendPathSegments [ent.name] m.url)
+        , href = constructFilePath m.url ent.name
         , extra = []
         , size' = toString (Maybe.withDefault 0 ent.size')
         }
@@ -154,6 +166,23 @@ toLi m ent =
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.none
+
+-- HELPERS
+
+
+decodeUrlPath : Url -> String
+decodeUrlPath url =
+  url
+    |> Erl.toString
+    |> Erl.extractPath
+    |> Http.uriDecode
+
+constructFilePath : Url -> String -> String
+constructFilePath url filename =
+  url
+    |> Erl.appendPathSegments [filename]
+    |> Erl.toString
+    |> String.dropRight 1
 
 -- HTTP
 
